@@ -6,13 +6,11 @@ from bson import ObjectId
 app = Flask(__name__)
 CORS(app)
 
-# Connect to local MongoDB instance
+# ✅ Only this MongoDB Atlas connection
 client = MongoClient("mongodb+srv://ashwithaade:ashu%401305@cluster0.3ebl8el.mongodb.net/")
-client = MongoClient("mongodb://localhost:27017")
 db = client["userdb"]
 collection = db["users"]
 
-# Helper: Convert MongoDB ObjectId to string without modifying original
 def serialize_user(user):
     return {
         "_id": str(user["_id"]),
@@ -20,14 +18,16 @@ def serialize_user(user):
         "email": user.get("email", "")
     }
 
-# Route: Get all users
+@app.route('/')
+def home():
+    return "✅ Flask API is Live! Use /get_data, /add_data, etc."
+
 @app.route('/get_data', methods=['GET'])
 def get_data():
     users = list(collection.find())
     users = [serialize_user(user) for user in users]
     return jsonify(users), 200
 
-# Route: Add a new user
 @app.route('/add_data', methods=['POST'])
 def add_data():
     user = request.get_json()
@@ -40,7 +40,6 @@ def add_data():
         "id": str(result.inserted_id)
     }), 201
 
-# Route: Update user by ID
 @app.route('/update_data/<string:user_id>', methods=['PUT'])
 def update_data(user_id):
     updated_user = request.get_json()
@@ -58,7 +57,6 @@ def update_data(user_id):
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 400
 
-# Route: Delete user by ID
 @app.route('/delete_data/<string:user_id>', methods=['DELETE'])
 def delete_data(user_id):
     try:
@@ -69,6 +67,5 @@ def delete_data(user_id):
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 400
 
-# Run the Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
