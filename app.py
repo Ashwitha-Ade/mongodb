@@ -3,7 +3,7 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from bson import ObjectId
 
-app = Flask(_name_)
+app = Flask(__name__)  # <-- FIXED
 CORS(app)
 
 # MongoDB Connection (Local or Render-hosted MongoDB URI if remote)
@@ -73,5 +73,5 @@ def delete_data(user_id):
         return jsonify({"message": f"Error: {str(e)}"}), 400
 
 # Run the app locally (ignored in production)
-if _name_ == '_main_':
+if __name__ == '__main__':  # <-- FIXED
     app.run(host='0.0.0.0', port=5000)
