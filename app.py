@@ -3,14 +3,15 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from bson import ObjectId
 
-app = Flask(__name__)
+app = Flask(_name_)
 CORS(app)
 
-# ✅ Only this MongoDB Atlas connection
-client = MongoClient("mongodb+srv://ashwithaade:ashu%401305@cluster0.3ebl8el.mongodb.net/")
+# MongoDB Connection (Local or Render-hosted MongoDB URI if remote)
+client = MongoClient("mongodb://localhost:27017")
 db = client["userdb"]
 collection = db["users"]
 
+# Helper: Serialize MongoDB user
 def serialize_user(user):
     return {
         "_id": str(user["_id"]),
@@ -18,16 +19,18 @@ def serialize_user(user):
         "email": user.get("email", "")
     }
 
-@app.route('/')
+# Root route
+@app.route('/', methods=['GET'])
 def home():
-    return "✅ Flask API is Live! Use /get_data, /add_data, etc."
+    return jsonify({"message": "MongoDB Flask API is running"}), 200
 
+# GET all users
 @app.route('/get_data', methods=['GET'])
 def get_data():
-    users = list(collection.find())
-    users = [serialize_user(user) for user in users]
+    users = [serialize_user(user) for user in collection.find()]
     return jsonify(users), 200
 
+# POST new user
 @app.route('/add_data', methods=['POST'])
 def add_data():
     user = request.get_json()
@@ -40,6 +43,7 @@ def add_data():
         "id": str(result.inserted_id)
     }), 201
 
+# PUT update user
 @app.route('/update_data/<string:user_id>', methods=['PUT'])
 def update_data(user_id):
     updated_user = request.get_json()
@@ -57,6 +61,7 @@ def update_data(user_id):
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 400
 
+# DELETE user
 @app.route('/delete_data/<string:user_id>', methods=['DELETE'])
 def delete_data(user_id):
     try:
@@ -67,5 +72,6 @@ def delete_data(user_id):
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 400
 
-if __name__ == '__main__':
+# Run the app locally (ignored in production)
+if _name_ == '_main_':
     app.run(host='0.0.0.0', port=5000)
